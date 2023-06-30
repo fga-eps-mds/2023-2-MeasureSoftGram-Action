@@ -13169,8 +13169,11 @@ const request_service_1 = __nccwpck_require__(1874);
 const service_1 = __importDefault(__nccwpck_require__(841));
 const github_comment_1 = __importDefault(__nccwpck_require__(6617));
 async function run() {
-    var _a;
     try {
+        if (!github.context.payload.pull_request)
+            return;
+        if (!github.context.payload.pull_request.merged)
+            return;
         console.log('Starting action with Service');
         const { repo } = github.context;
         const currentDate = new Date();
@@ -13184,7 +13187,7 @@ async function run() {
         const { pull_request } = github.context.payload;
         const metrics = await sonarqube.getMeasures({
             pageSize: 500,
-            pullRequestNumber: (_a = pull_request === null || pull_request === void 0 ? void 0 : pull_request.number) !== null && _a !== void 0 ? _a : null,
+            pullRequestNumber: null,
         });
         const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate);
         const result = await service.calculateResults(requestService);
