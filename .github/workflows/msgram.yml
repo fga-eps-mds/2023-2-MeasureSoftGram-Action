@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ fix/release-run ]
+    branches: [ test ]
 
 jobs:
   msgram_job:
