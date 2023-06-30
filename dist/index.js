@@ -13060,74 +13060,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 6617:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const github = __importStar(__nccwpck_require__(2483));
-class GithubComment {
-    createMessage(result) {
-        const message = `
-      ## MeasureSoftGram Analysis Results
-  
-      ### SQC Values
-  
-      ${result[0].sqc[0].value.toFixed(2)}
-  
-      ### Characteristics Values
-  
-      ${result[0].characteristics.map((characteristic) => `* **${characteristic.key}**: ${characteristic.value.toFixed(2)}`).join('\n')}
-  
-      ###`.trim().replace(/^\s+/gm, '');
-        return message;
-    }
-    async createOrUpdateComment(pullRequestNumber, message, octokit) {
-        // Check if a comment already exists on the pull request
-        const { data: comments } = await octokit.rest.issues.listComments(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber }));
-        const actionUser = "github-actions[bot]";
-        const existingComment = comments.find((comment) => {
-            return comment.user.login === actionUser && comment.body.includes('## MeasureSoftGram Analysis Results');
-        });
-        if (existingComment) {
-            // Comment already exists, update it
-            await octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github.context.repo), { comment_id: existingComment.id, body: message }));
-        }
-        else {
-            // Comment doesn't exist, create a new comment
-            await octokit.rest.issues.createComment(Object.assign(Object.assign({}, github.context.repo), { issue_number: pullRequestNumber, body: message }));
-        }
-    }
-}
-exports["default"] = GithubComment;
-
-
-/***/ }),
-
 /***/ 6486:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -13166,14 +13098,10 @@ const github = __importStar(__nccwpck_require__(2483));
 const utils_1 = __nccwpck_require__(2165);
 const sonarqube_1 = __importDefault(__nccwpck_require__(8925));
 const request_service_1 = __nccwpck_require__(1874);
-const service_1 = __importDefault(__nccwpck_require__(841));
-const github_comment_1 = __importDefault(__nccwpck_require__(6617));
 async function run() {
     try {
-        if (!github.context.payload.pull_request)
-            return;
-        if (!github.context.payload.pull_request.merged)
-            return;
+        // if (!github.context.payload.pull_request) return;
+        // if (!github.context.payload.pull_request.merged) return;
         console.log('Starting action with Service');
         const { repo } = github.context;
         const currentDate = new Date();
@@ -13189,16 +13117,16 @@ async function run() {
             pageSize: 500,
             pullRequestNumber: null,
         });
-        const service = new service_1.default(repo.repo, repo.owner, productName, metrics, currentDate);
-        const result = await service.calculateResults(requestService);
-        if (!pull_request) {
-            console.log('No pull request found.');
-            return;
-        }
-        console.log('Creating comment');
-        const githubComment = new github_comment_1.default();
-        const message = githubComment.createMessage(result);
-        await githubComment.createOrUpdateComment(pull_request.number, message, octokit);
+        // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
+        // const result = await service.calculateResults(requestService)
+        // if (!pull_request) {
+        //   console.log('No pull request found.');
+        //   return;
+        // }
+        // console.log('Creating comment');
+        // const githubComment = new GithubComment();
+        // const message = githubComment.createMessage(result);
+        // await githubComment.createOrUpdateComment(pull_request.number, message, octokit);
     }
     catch (error) {
         if (error instanceof Error) {
@@ -13324,109 +13252,6 @@ class RequestService {
     }
 }
 exports.RequestService = RequestService;
-
-
-/***/ }),
-
-/***/ 841:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-class Service {
-    constructor(repo, owner, productName, metrics, currentDate) {
-        this.repo = repo;
-        this.owner = owner;
-        this.currentDate = currentDate;
-        this.productName = productName;
-        this.metrics = metrics;
-    }
-    logRepoInfo() {
-        console.log(`Repo: ${this.repo}`);
-        console.log(`Owner: ${this.owner}`);
-    }
-    async checkEntityExists(entities, name) {
-        let entityId = null;
-        for (const entity of entities) {
-            if (entity.name === name) {
-                entityId = entity.id;
-                break;
-            }
-        }
-        if (!entityId) {
-            throw new Error(`Entity ${name} does not exist.`);
-        }
-        else {
-            return entityId;
-        }
-    }
-    async checkReleaseExists(listReleases) {
-        const currentDateStr = this.currentDate.toISOString().split('T')[0];
-        let releaseId = null;
-        for (const release of listReleases) {
-            const startAt = release.start_at.split('T')[0];
-            const endAt = release.end_at.split('T')[0];
-            if (currentDateStr >= startAt && currentDateStr <= endAt) {
-                releaseId = release.id;
-                break;
-            }
-        }
-        if (releaseId === null) {
-            throw new Error(`No release is happening on ${currentDateStr}.`);
-        }
-        else {
-            console.log(`Release with id ${releaseId} is happening on ${currentDateStr}.`);
-        }
-    }
-    async createMetrics(requestService, metrics, orgId, productId, repositoryId) {
-        const string_metrics = JSON.stringify(metrics);
-        console.log('Calculating metrics, measures, characteristics and subcharacteristics');
-        await requestService.insertMetrics(string_metrics, orgId, productId, repositoryId);
-        const data_measures = await requestService.calculateMeasures(orgId, productId, repositoryId);
-        console.log('Calculated measures: \n', data_measures);
-        const data_characteristics = await requestService.calculateCharacteristics(orgId, productId, repositoryId);
-        console.log('Calculated characteristics: \n', data_characteristics);
-        const data_subcharacteristics = await requestService.calculateSubCharacteristics(orgId, productId, repositoryId);
-        console.log('Calculated subcharacteristics: \n', data_subcharacteristics);
-        const data_sqc = await requestService.calculateSQC(orgId, productId, repositoryId);
-        console.log('SQC: \n', data_sqc);
-        return { data_characteristics, data_sqc };
-    }
-    async calculateResults(requestService) {
-        this.logRepoInfo();
-        const listOrganizations = await requestService.listOrganizations();
-        const orgId = await this.checkEntityExists(listOrganizations.results, this.owner);
-        const listProducts = await requestService.listProducts(orgId);
-        const productId = await this.checkEntityExists(listProducts.results, this.productName);
-        const listRepositories = await requestService.listRepositories(orgId, productId);
-        const repositoryId = await this.checkEntityExists(listRepositories.results, this.repo);
-        const listReleases = await requestService.listReleases(orgId, productId);
-        await this.checkReleaseExists(listReleases);
-        const { data_characteristics, data_sqc } = await this.createMetrics(requestService, this.metrics, orgId, productId, repositoryId);
-        const characteristics = data_characteristics.map((data) => {
-            return {
-                key: data.key,
-                value: data.latest.value
-            };
-        });
-        const sqc = [{
-                key: 'sqc',
-                value: data_sqc.value
-            }];
-        const result = [{
-                repository: [],
-                version: [],
-                measures: [],
-                subcharacteristics: [],
-                characteristics: characteristics,
-                sqc: sqc
-            }];
-        console.log('Result: \n', JSON.stringify(result));
-        return result;
-    }
-}
-exports["default"] = Service;
 
 
 /***/ }),

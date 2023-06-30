@@ -9,8 +9,8 @@ import GithubComment from './github/github-comment';
 
 export async function run() {
   try {
-    if (!github.context.payload.pull_request) return;
-    if (!github.context.payload.pull_request.merged) return;
+    // if (!github.context.payload.pull_request) return;
+    // if (!github.context.payload.pull_request.merged) return;
 
     console.log('Starting action with Service');
     const { repo } = github.context;
@@ -30,19 +30,19 @@ export async function run() {
       pullRequestNumber: null,
     })
 
-    const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
-    const result = await service.calculateResults(requestService)
+    // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
+    // const result = await service.calculateResults(requestService)
 
-    if (!pull_request) {
-      console.log('No pull request found.');
-      return;
-    }
+    // if (!pull_request) {
+    //   console.log('No pull request found.');
+    //   return;
+    // }
 
-    console.log('Creating comment');
-    const githubComment = new GithubComment();
-    const message = githubComment.createMessage(result);
+    // console.log('Creating comment');
+    // const githubComment = new GithubComment();
+    // const message = githubComment.createMessage(result);
     
-    await githubComment.createOrUpdateComment(pull_request.number, message, octokit);
+    // await githubComment.createOrUpdateComment(pull_request.number, message, octokit);
   } catch (error: unknown) {
     if (error instanceof Error) {
       core.setFailed(error.message);
