@@ -29,7 +29,9 @@ export async function run() {
       pageSize: 500,
       pullRequestNumber: null,
     })
-
+    // print metrics
+    console.log(metrics);
+    
     // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
     // const result = await service.calculateResults(requestService)
 
