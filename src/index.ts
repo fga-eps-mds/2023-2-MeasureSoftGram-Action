@@ -9,8 +9,8 @@ import GithubComment from './github/github-comment';
 
 export async function run() {
   try {
-    // if (!github.context.payload.pull_request) return;
-    // if (!github.context.payload.pull_request.merged) return;
+    if (!github.context.payload.pull_request) return;
+    if (!github.context.payload.pull_request.merged) return;
 
     console.log('Starting action with Service');
     const { repo } = github.context;
@@ -31,7 +31,7 @@ export async function run() {
     })
     // print metrics
     console.log(metrics);
-    
+
     // const service = new Service(repo.repo, repo.owner, productName, metrics, currentDate);
     // const result = await service.calculateResults(requestService)
 

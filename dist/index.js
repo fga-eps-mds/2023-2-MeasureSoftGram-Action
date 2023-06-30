@@ -13100,8 +13100,10 @@ const sonarqube_1 = __importDefault(__nccwpck_require__(8925));
 const request_service_1 = __nccwpck_require__(1874);
 async function run() {
     try {
-        // if (!github.context.payload.pull_request) return;
-        // if (!github.context.payload.pull_request.merged) return;
+        if (!github.context.payload.pull_request)
+            return;
+        if (!github.context.payload.pull_request.merged)
+            return;
         console.log('Starting action with Service');
         const { repo } = github.context;
         const currentDate = new Date();
