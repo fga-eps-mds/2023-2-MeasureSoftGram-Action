@@ -1,6 +1,7 @@
 on:
   pull_request:
     branches: [ fix/release-run ]
+    types: [ closed ]
 
 jobs:
   msgram_job:
